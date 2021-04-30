@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: api
 spec:
-  replicas: 5
+  #replicas: 5
   selector:
     matchLabels:
       app: api
@@ -15,6 +15,31 @@ spec:
       containers:
         - name: api
           image: dcllima/api-bootcamp-produto:v2
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "100m"
+            limits:
+              memory: "64Mi"
+              cpu: "200m"            
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /read
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 1
           ports:
             - containerPort: 8080
           env:
@@ -34,4 +59,20 @@ spec:
     - port: 80
       targetPort: 8080
       nodePort: 30000
-  type: NodePort
+  type: LoadBalancer
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 1  
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  

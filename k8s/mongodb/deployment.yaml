@@ -21,4 +21,25 @@ spec:
               value: mongouser
             - name: MONGO_INITDB_ROOT_PASSWORD  
               value: mongopwd    
-    
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "1028Mi"
+              cpu: "400m" 
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mongodb-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mongodb
+  minReplicas: 1  
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
